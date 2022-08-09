@@ -1,7 +1,14 @@
-def read_data():
+import gzip
+
+def read_gzip(fn):
     fn = input()
-    # fn = 'test/test1.fastq'
-    # fn = 'srr16506265_1.fastq'
+    with gzip.open(fn, 'r') as f:
+        lines = f.read().decode('utf8').split('\n')
+    return lines
+
+def read_data():
+    # fn = input()
+    fn = 'test/test1.fastq'
     with open(fn, 'r') as f:
         lines = f.read().split('\n')
     return lines
@@ -80,6 +87,32 @@ def stage4():
 
 def stage5():
     data = read_data()
+    rez = proc_data(data)
+    print(f'Reads in the file = {rez[0]}:')
+    print(f'Reads sequence average length = {rez[1]}')
+    print(f'Repeats = {rez[2]}')
+    print(f'Reads with Ns = {rez[3]}')
+    print(f'GC content average = {rez[4]}%')
+    print(f'Ns per read sequence = {rez[5]}%')
+
+def stage6():
+    rez = []
+    for i in range(3):
+        fn = f'test/data{i + 1}.gz'
+        data = read_gzip(fn)
+        r = proc_data(data)
+        rez.append(r)
+    rez_list = [rez[0][3], rez[1][3], rez[2][3]]
+    best = min(rez_list)
+    best_i = rez_list.index(best)
+    print(f'Reads in the file = {rez[best_i][0]}:')
+    print(f'Reads sequence average length = {rez[best_i][1]}')
+    print(f'Repeats = {rez[best_i][2]}')
+    print(f'Reads with Ns = {rez[best_i][3]}')
+    print(f'GC content average = {rez[best_i][4]}%')
+    print(f'Ns per read sequence = {rez[best_i][5]}%')
+
+def proc_data(data):
     i = 0
     dic = {}
     while i < len(data):
@@ -103,13 +136,11 @@ def stage5():
         r_gc += gc / len(k) * v
 
     cnt = sum(dic.values())
+    aver_len = round(cnt_ch / cnt)
     rep = sum([v - 1 for v in dic.values() if v > 1])
-    print(f'Reads in the file = {cnt}:')
-    print(f'Reads sequence average length = {round(cnt_ch / cnt)}')
-    print(f'Repeats = {rep}')
-    print(f'Reads with Ns = {num_n}')
-    print(f'GC content average = {round(100 * r_gc / cnt, 2)}%')
-    print(f'Ns per read sequence = {round(100 * r_n / cnt, 2)}%')
+    aver_gc = round(100 * r_gc / cnt, 2)
+    aver_n = round(100 * r_n / cnt, 2)
 
+    return [cnt, aver_len, rep, num_n, aver_gc, aver_n]
 
-stage5()
+stage6()
