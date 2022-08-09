@@ -1,6 +1,6 @@
 def read_data():
     fn = input()
-    # fn = 'test1.fastq'
+    # fn = 'srr16506265_1.fastq'
     with open(fn, 'r') as f:
         lines = f.read().split('\n')
     return lines
@@ -52,5 +52,30 @@ def stage3():
     print(f'Reads sequence average length = {round(n / r_cnt)}')
     print(f'GC content average = {round(100 * k / r_cnt, 2)}%')
 
+def stage4():
+    data = read_data()
+    i = 0
+    dic = {}
+    while i < len(data):
+        if data[i][:4] == '@SRR':
+            dna = data[i + 1]
+            dic[dna] = dic.get(dna, 0) + 1
+            i += 4
+        else:
+            i += 1
+    n = 0
+    r = 0
+    for k, v in dic.items():
+        n += len(k) * v
+        gc = k.count('G') + k.count('C')
+        r += gc / len(k) * v
 
-stage3()
+    cnt = sum(dic.values())
+    rep = sum([v - 1 for v in dic.values() if v > 1])
+    print(f'Reads in the file = {cnt}:')
+    print(f'Reads sequence average length = {round(n / cnt)}')
+    print(f'Repeats = {rep}')
+    print(f'GC content average = {round(100 * r / cnt, 2)}%')
+
+
+stage4()
